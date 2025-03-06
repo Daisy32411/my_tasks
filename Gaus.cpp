@@ -178,9 +178,6 @@ bool check_input(const int res) {
 
 void gauss(Matrix &A, Mas &B, const int n) {
     for (int i = 0; i < n; i++) {
-        double elmax = fabs(A.M_element(i, i));
-        int to = i;
-
         for (int j = i + 1; j < n; j++) {
             if (A.M_element(i, i) == 0) {
                 perror("Error: Division by zero\n");
