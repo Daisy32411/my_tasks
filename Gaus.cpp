@@ -4,14 +4,82 @@
 и наконец свободные члены уравнений по одному.
 */
 
+
 #include <iostream>
 #include <cstdlib>
 #include <utility>
+#include <cmath>
 
-void gauss(double **arrA, double *arrB, const int n);
+class Mas {
+public:
+    Mas(int size) {
+        _size = size;
+
+        top = new double[_size];
+        if (top == nullptr) {
+            perror("Error: Memory allocation falied\n");
+            exit(1);
+        }
+    }
+
+    ~Mas() {
+        delete[] top;
+    }
+
+    double& element(int n) {
+        if (n >= 0 && n < _size)
+            return top[n];
+        else {
+            perror("Error: There is no such array element\n");
+            exit(1);
+        } 
+    }
+    
+private:
+    int _size;
+    double *top;
+};  
+
+class Matrix {
+public:
+    Matrix(int row, int col) {
+        _row = row;
+        _col = col;
+
+        top = new double*[_row];
+        if (top == nullptr) {
+            perror("Error: Memory allocation falied\n");
+            exit(1);
+        }
+
+        for (int i = 0; i < _row; i++) {
+            top[i] = new double[_col];
+        }
+    }
+
+    ~Matrix() {
+        for (int i = 0; i < _row; i++)
+            delete[] top[i];
+        delete[] top;
+    }
+
+    double& M_element(int row, int col) {
+        if ((row >= 0 && row < _row) && (col >= 0 && col < _col))
+            return top[row][col];
+        else {
+            perror("Error: There is no such matrix element\n");
+            exit(1);
+        }
+    }
+
+private:
+    int _row;
+    int _col;
+    double **top;   
+};
+
+void gauss(Matrix &A, Mas &B, const int n);
 bool check_input(const int res);
-void memory_clear(double **arr, int n);
-void memory_clear(double *arr);
 
 int main(void) {
     int n, res;
@@ -20,27 +88,21 @@ int main(void) {
     res = scanf("%d", &n);
     check_input(res) ? exit(1) : (void)0;
 
-    double** arrA = new double*[n];
-    double* arrB = new double[n];
-
-    for (int i = 0; i < n; i++) 
-        arrA[i] = new double[n];
+    Matrix A(n, n);
+    Mas B(n);
 
     printf("Введите элементы матрицы А по одному:\n");
-    for (int j = 0; j < n; j++)
-        for (int i = 0; i < n; i++) {
-            res = scanf("%lf", &arrA[j][i]);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+            res = scanf("%lf", &A.M_element(i, j));
             check_input(res) ? exit(1) : (void)0;
         }
     
     printf("Введите свободные члены по одному:\n");
     for (int i = 0; i < n; i++) 
-        scanf("%lf", &arrB[i]); 
+        scanf("%lf", &B.element(i)); 
 
-    gauss(arrA, arrB, n);
-
-    memory_clear(arrA, n);
-    memory_clear(arrB);
+    gauss(A, B, n);
 
     return 0;
 }
@@ -91,7 +153,7 @@ int main(void) {
 
 bool check_input(const int res) {
     if (res != 1) {
-        printf("Error: Wrong input\n");
+        perror("Error: Wrong input\n");
         return true;
     }
     return false;
@@ -100,52 +162,48 @@ bool check_input(const int res) {
 
 
 
-void gauss(double **arrA, double *arrB, const int n) {
+void gauss(Matrix &A, Mas &B, const int n) {
     for (int i = 0; i < n; i++) {
-        double elmax = abs(arrA[i][i]);
+        double elmax = fabs(A.M_element(i, i));
         int to = i;
 
         for (int j = i + 1; j < n; j++) {
-            if (abs(arrA[j][i]) > elmax) {
-                elmax = abs(arrA[j][i]);
+            if (fabs(A.M_element(j, i)) > elmax) {
+                elmax = fabs(A.M_element(j, i));
                 to = j;
             }
         }
 
         for (int j = i; j < n; j++ ) 
-            std::swap(arrA[to][j], arrA[i][j]);
-        std::swap(arrB[to], arrB[i]);
+            std::swap(A.M_element(to, j), A.M_element(i, j));
+        std::swap(B.element(to), B.element(i));
 
         for (int j = i + 1; j < n; j++) {
-            double foo = -arrA[j][i] / arrA[i][i];
+            if (A.M_element(i, i) == 0) {
+                perror("Error: Mistake: Division by zero\n");
+                exit(1);
+            }
+            double foo = -A.M_element(j, i) / A.M_element(i, i);
             for (int k = i; k < n; k++)
-                arrA[j][k] += foo * arrA[i][k];
-            arrB[j] += foo * arrB[i];
+                A.M_element(j, k) += foo * A.M_element(i, k);
+            B.element(j) += foo * B.element(i);
         }
     }
 
-    double *ans = new double[n];
+    Mas ans(n);
 
     for (int i = n - 1; i >= 0; i--) {
-        ans[i] = arrB[i];
+        ans.element(i) = B.element(i);
         for (int j = i + 1; j < n; j++)
-            ans[i] -= arrA[i][j] * ans[j];
-        ans[i] /= arrA[i][i];
+            ans.element(i) -= A.M_element(i, j) * ans.element(j);
+        if (A.M_element(i, i) == 0) {
+                perror("Error: Mistake: Division by zero\n");
+                exit(1);
+        }
+        ans.element(i) /= A.M_element(i, i);
     }
 
     printf("Система уравнений имеет решения:\n");
     for (int i = 0; i < n; i++)
-        printf("x%d = %lf\n", i + 1, ans[i]);
-
-    delete[] ans; 
-}
-
-void memory_clear(double **arr, int n) {
-    for (int i = 0; i < n; i++)
-        delete[] arr[i];
-    delete[] arr;
-}
-
-void memory_clear(double *arr) {
-    delete[] arr;
+        printf("x%d = %lf\n", i + 1, ans.element(i));
 }
