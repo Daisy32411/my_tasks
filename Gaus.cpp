@@ -4,11 +4,11 @@
 и наконец свободные члены уравнений по одному.
 */
 
-
 #include <iostream>
 #include <cstdlib>
 #include <utility>
 #include <cmath>
+#include <cassert>
 
 class Mas {
 public:
@@ -34,11 +34,18 @@ public:
             exit(1);
         } 
     }
+
+    void PrintMas() {
+        printf("Система уравнений имеет решения:\n");
+        for (int i = 0; i < _size; i++) 
+            printf("x%d = %lf\n", i + 1, top[i]);
+    }
     
 private:
     int _size;
     double *top;
 };  
+
 
 class Matrix {
 public:
@@ -78,12 +85,13 @@ private:
     double **top;   
 };
 
+
 void gauss(Matrix &A, Mas &B, const int n);
 bool check_input(const int res);
 
+
 int main(void) {
     int n, res;
-    double pse;
     printf("Введите количество уравнений: ");
     res = scanf("%d", &n);
     check_input(res) ? exit(1) : (void)0;
@@ -91,16 +99,9 @@ int main(void) {
     Matrix A(n, n);
     Mas B(n);
 
-    printf("Введите элементы матрицы А по одному:\n");
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++) {
-            res = scanf("%lf", &A.M_element(i, j));
-            check_input(res) ? exit(1) : (void)0;
-        }
-    
-    printf("Введите свободные члены по одному:\n");
-    for (int i = 0; i < n; i++) 
-        scanf("%lf", &B.element(i)); 
+    inputMat(A, n); 
+
+    inputMas(B, n);
 
     gauss(A, B, n);
 
@@ -144,10 +145,22 @@ int main(void) {
 
 
 
+void inputMas(Mas& B, int n) {
+    printf("Введите свободные члены по одному:\n");
+        for (int i = 0; i < n; i++) 
+            scanf("%lf", &B.element(i));
+}
 
 
-
-
+void inputMat(Matrix& A, const int n) {
+    int res;
+    printf("Введите элементы матрицы А по одному:\n");
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+            res = scanf("%lf", &A.M_element(i, j));
+            check_input(res) ? exit(1) : (void)0;
+        }
+}
 
 
 
@@ -158,8 +171,6 @@ bool check_input(const int res) {
     }
     return false;
 }
-
-
 
 
 void gauss(Matrix &A, Mas &B, const int n) {
@@ -180,7 +191,7 @@ void gauss(Matrix &A, Mas &B, const int n) {
 
         for (int j = i + 1; j < n; j++) {
             if (A.M_element(i, i) == 0) {
-                perror("Error: Mistake: Division by zero\n");
+                perror("Error: Division by zero\n");
                 exit(1);
             }
             double foo = -A.M_element(j, i) / A.M_element(i, i);
@@ -197,13 +208,9 @@ void gauss(Matrix &A, Mas &B, const int n) {
         for (int j = i + 1; j < n; j++)
             ans.element(i) -= A.M_element(i, j) * ans.element(j);
         if (A.M_element(i, i) == 0) {
-                perror("Error: Mistake: Division by zero\n");
+                perror("Error: Division by zero\n");
                 exit(1);
         }
         ans.element(i) /= A.M_element(i, i);
     }
-
-    printf("Система уравнений имеет решения:\n");
-    for (int i = 0; i < n; i++)
-        printf("x%d = %lf\n", i + 1, ans.element(i));
 }
