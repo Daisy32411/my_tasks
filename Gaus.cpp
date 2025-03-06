@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cassert>
 
+
 class Mas {
 public:
     Mas(int size) {
@@ -88,6 +89,8 @@ private:
 
 void gauss(Matrix &A, Mas &B, const int n);
 bool check_input(const int res);
+void inputMas(Mas& B, int n);
+void inputMat(Matrix& A, const int n);
 
 
 int main(void) {
@@ -146,6 +149,7 @@ int main(void) {
 
 
 void inputMas(Mas& B, int n) {
+
     printf("Введите свободные члены по одному:\n");
         for (int i = 0; i < n; i++) 
             scanf("%lf", &B.element(i));
@@ -163,7 +167,6 @@ void inputMat(Matrix& A, const int n) {
 }
 
 
-
 bool check_input(const int res) {
     if (res != 1) {
         perror("Error: Wrong input\n");
@@ -179,17 +182,6 @@ void gauss(Matrix &A, Mas &B, const int n) {
         int to = i;
 
         for (int j = i + 1; j < n; j++) {
-            if (fabs(A.M_element(j, i)) > elmax) {
-                elmax = fabs(A.M_element(j, i));
-                to = j;
-            }
-        }
-
-        for (int j = i; j < n; j++ ) 
-            std::swap(A.M_element(to, j), A.M_element(i, j));
-        std::swap(B.element(to), B.element(i));
-
-        for (int j = i + 1; j < n; j++) {
             if (A.M_element(i, i) == 0) {
                 perror("Error: Division by zero\n");
                 exit(1);
@@ -203,14 +195,24 @@ void gauss(Matrix &A, Mas &B, const int n) {
 
     Mas ans(n);
 
-    for (int i = n - 1; i >= 0; i--) {
-        ans.element(i) = B.element(i);
-        for (int j = i + 1; j < n; j++)
-            ans.element(i) -= A.M_element(i, j) * ans.element(j);
-        if (A.M_element(i, i) == 0) {
-                perror("Error: Division by zero\n");
-                exit(1);
+    int det = 1;
+
+    for (int i = 0; i < n; i++)
+        det *= A.M_element(i, i);
+    
+    if (det == 0) {
+        printf("The determinant is zero, so there are infinitely many solutions\n");
+    } else {
+        for (int i = n - 1; i >= 0; i--) {
+            ans.element(i) = B.element(i);
+            for (int j = i + 1; j < n; j++)
+                ans.element(i) -= A.M_element(i, j) * ans.element(j);
+            if (A.M_element(i, i) == 0) {
+                    perror("Error: Division by zero\n");
+                    exit(1);
+            }
+            ans.element(i) /= A.M_element(i, i);
         }
-        ans.element(i) /= A.M_element(i, i);
+        ans.PrintMas();
     }
 }
