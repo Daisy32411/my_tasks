@@ -8,15 +8,27 @@
 #include <cstdlib>
 #include <utility>
 #include <cmath>
+#include <ctime>
+
 
 bool check_input(const int res);
 
 class Mas {
 public:
-    void inputMas(Mas& B, int n) {    
+    void randinputMas(Mas& B, const int n) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+            for (int i = 0; i < n; i++) {
+                B.element(i) = std::rand() % 1001;
+            }
+    }
+
+    void inputMas(Mas& B, const int n) {   
+        int res; 
         printf("Введите свободные члены по одному:\n");
-            for (int i = 0; i < n; i++) 
-                scanf("%lf", &B.element(i));
+            for (int i = 0; i < n; i++) {
+                res = scanf("%lf", &B.element(i));
+                check_input(res) ? exit(1) : (void)0;
+            }
     }
 
     Mas(int size) {
@@ -33,7 +45,7 @@ public:
         delete[] top;
     }
 
-    double& element(int n) {
+    double& element(const int n) {
         if (n >= 0 && n < _size)
             return top[n];
         else {
@@ -56,6 +68,13 @@ private:
 
 class Matrix {
 public:
+    void randinputMat(Matrix& A, const int n) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++) 
+                A.M_element(i, j) = std::rand() % 1001;
+    }
+
     void inputMat(Matrix& A, const int n) {
         int res;
         printf("Введите элементы матрицы А по одному:\n");
@@ -87,7 +106,7 @@ public:
         delete[] top;
     }
 
-    double& M_element(int row, int col) {
+    double& M_element(const int row, const int col) {
         if ((row >= 0 && row < _row) && (col >= 0 && col < _col))
             return top[row][col];
         else {
@@ -106,7 +125,11 @@ private:
 void gauss(Matrix &A, Mas &B, const int n);
 
 int main(void) {
-    int n, res;
+    int n, res, valid;
+    printf("Введите 1, если хотите инициализировать матрицу самостоятельно, и 0 если хотите инициализировать её случайными числами\n");
+    res = scanf("%d", &valid);
+    check_input(res) ? exit(1) : (void)0;
+
     printf("Введите количество уравнений: ");
     res = scanf("%d", &n);
     check_input(res) ? exit(1) : (void)0;
@@ -114,9 +137,16 @@ int main(void) {
     Matrix A(n, n);
     Mas B(n);
 
-    A.inputMat(A, n); 
-
-    B.inputMas(B, n);
+    if (valid ==  1) {
+        A.inputMat(A, n); 
+        B.inputMas(B, n);
+    } else if (valid == 0) {
+        A.randinputMat(A, n);
+        B.randinputMas(B, n);
+    } else {
+        printf("Error: 'Valid' can be either 0 or 1\n");
+        exit(1);
+    }
 
     gauss(A, B, n);
 
